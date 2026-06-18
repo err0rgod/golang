@@ -1,16 +1,12 @@
 package main
 
-import (
-	"fmt"
-)
 
-func add(a , b int) (x,y int) {
-	x = a+b
-	y= (a-b)
-	return
-}
+import "fmt"
 
-func main() {
-	a,b := add(10,20)
-	fmt.Println(a,b)
+func main(){
+	sum := 0
+	for i:=0; i<10; i++{
+		sum +=i
+	}
+	fmt.Println(sum)
 }
