@@ -4,9 +4,11 @@ package main
 import "fmt"
 
 func main(){
+	defer fmt.Print("Done exec")
 	sum := 0
-	for i:=0; i<10; i++{
-		sum +=i
+	for {
+		sum +=1
+		if (sum > 100) {break}
+		fmt.Println(sum)
 	}
-	fmt.Println(sum)
 }
