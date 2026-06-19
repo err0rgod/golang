@@ -1,12 +1,16 @@
 package main
 
+import (
+	"fmt"
+	"unicode/utf8"
+)
 
-import "fmt"
-
-func anagram(s1 , s2 string)  {
-	mp := make(map[rune]int)
-	
+type User struct {
+	Name string
+	Age  int
 }
+
+func 
 
 func main(){
 
