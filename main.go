@@ -3,8 +3,11 @@ package main
 
 import "fmt"
 
+func anagram(s1 , s2 string)  {
+	mp := make(map[rune]int)
+	
+}
+
 func main(){
-	defer fmt.Print("\nDone exec")
-	arr := [3]int{1, 2, 4}
-	fmt.Print(arr[1])
+
 }
