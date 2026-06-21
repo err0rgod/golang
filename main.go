@@ -4,12 +4,15 @@ import (
 	"fmt"
 )
 
+type digit float64
+
 type Rectangle struct {
-	height float64
-	width float64
+	height digit
+	width digit
 }
 
-func (r Rectangle) Area() float64 {
+
+func (r Rectangle) Area() digit {
 	return r.height * r.width
 }
 
