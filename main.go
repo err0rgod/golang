@@ -5,14 +5,11 @@ import (
 )
 
 func main() {
-	var name string
-	var age int
+	taskmanager  := make(map[int]string)
+	taskmanager[1] ="do dishes"
+	taskmanager[2] = "wash clothes"
 
-	fmt.Print("Enter name and age : ")
-	_,err := fmt.Scanf("%s %d",&name,&age)
-	if err != nil {
-		fmt.Print("Error reading input.")
-		return
+	for id,t := range taskmanager{
+		fmt.Printf("Task %d : %s\n",id,t)
 	}
-	fmt.Printf("Name : %s , age : %d ", name, age)
 }
