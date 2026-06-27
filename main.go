@@ -18,33 +18,38 @@ func main() {
 		fmt.Print("Enter 2 for completing a task.\n")
 		fmt.Print("Enter 3 for listing all task.\n")
 		fmt.Print("Enter 4 for exiting.\n")
-		fmt.Scanf("%d", &option)
+		fmt.Scan(&option)
 		switch option{
 		case 1 :
 			fmt.Println("Enter the task id and task. (with spaces)")
 			var id int
 			var task string
 			
-			fmt.Scanln(&id,&task)
+			fmt.Scan(&id,&task)
 			taskmanager[id] = task
+			
 		case 2:
-			fmt.Print("Enter the task id to mark as completed.")
+			fmt.Println("Enter the task id to mark as completed.")
 			var id int
+			fmt.Scan(&id)
 			_,exists := taskmanager[id]
 			if exists {
 				delete(taskmanager,id)
 			} else {
-				fmt.Print("Invalid task ID.")
+				fmt.Println("Invalid task ID.")
 			}
+			
 		case 3 :
-			fmt.Print("Listing all tasks ----------")
-			for val,_ := range  taskmanager{
-				fmt.Println(val)
+			fmt.Println("Listing all tasks ----------")
+			for val,tasks := range  taskmanager{
+				fmt.Println(val,tasks)
 			}
+			
 		case 4:
 			return
+			
 		default : 
-		fmt.Print("Select valid choice.")
+		fmt.Println("Select valid choice.")
 		
 		}
 		
