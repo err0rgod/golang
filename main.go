@@ -5,10 +5,14 @@ import (
 
 )
 
+type task struct {
+	id int
+	task string
+}
 
 
 func main() {
-	taskmanager  := make(map[int]string)
+	var taskmanager task[]
 	// create tasks in the map
 
 	for true {
@@ -26,13 +30,13 @@ func main() {
 			var task string
 			
 			fmt.Scan(&id,&task)
-			taskmanager[id] = task
+			taskmanager.id = task
 			
 		case 2:
 			fmt.Println("Enter the task id to mark as completed.")
 			var id int
 			fmt.Scan(&id)
-			_,exists := taskmanager[id]
+			_,exists := taskmanager.id
 			if exists {
 				delete(taskmanager,id)
 			} else {
@@ -41,7 +45,7 @@ func main() {
 			
 		case 3 :
 			fmt.Println("Listing all tasks ----------")
-			for val,tasks := range  taskmanager{
+			for val,tasks := range  taskmanager.task{
 				fmt.Println(val,tasks)
 			}
 			
