@@ -2,26 +2,49 @@ package main
 
 import (
 	"fmt"
+	"encoding/json"
+	"os"
 
 )
 
-type task struct {
-	id int
-	task string
+type Task struct {
+	Id int
+	Name string
+	Done bool
+}
+
+
+func LoadTasks() []Task {
+	byte,err := os.ReadFile("task.json")
+	if err!=nil {
+		fmt.Println("Error Occured while reding file. ",err)
+		return nil
+	} 
+
+	var taskslice []Task
+	if err := json.Unmarshal(byte,&taskslice); err!=nil{
+		fmt.Println("Error while parsing json.")
+		return nil
+	}
+	return taskslice
+}
+
+func SaveTasks(taskslice []Task) {
+	byte,err := json.Marshal(taskslice)
+	if err!=nil {
+		fmt.Println("Error while parsing Struct to Json ")
+		return
+	}
+	os.WriteFile("task.json",byte,0644)
 }
 
 
 func main() {
-	var taskmanager task[]
 	// create tasks in the map
 
-	for true {
+	for {
 		option := 0
-		fmt.Print("Enter you choice-----\n")
-		fmt.Print("Enter 1 for adding a task.\n")
-		fmt.Print("Enter 2 for completing a task.\n")
-		fmt.Print("Enter 3 for listing all task.\n")
-		fmt.Print("Enter 4 for exiting.\n")
+		fmt.Print("\n 1. Add Task 2. Complete Task 3. List Tasks 4. Quit\n ")
 		fmt.Scan(&option)
 		switch option{
 		case 1 :
@@ -30,30 +53,41 @@ func main() {
 			var task string
 			
 			fmt.Scan(&id,&task)
-			taskmanager.id = task
+			tasks := LoadTasks()
+			tasks = append(tasks, Task{Id: id, Name: task})
+			SaveTasks(tasks)
 			
 		case 2:
 			fmt.Println("Enter the task id to mark as completed.")
 			var id int
 			fmt.Scan(&id)
-			_,exists := taskmanager.id
-			if exists {
-				delete(taskmanager,id)
-			} else {
-				fmt.Println("Invalid task ID.")
+			found := false
+			tasks := LoadTasks()
+			for i,t := range tasks {
+				if t.Id == id {
+					tasks[i].Done = true
+					found = true
+					fmt.Println("Marked done. ")
+					SaveTasks(tasks)
+					break
+				}
+			}
+			if !found {
+				fmt.Println("Invalid ID.")
 			}
 			
 		case 3 :
 			fmt.Println("Listing all tasks ----------")
-			for val,tasks := range  taskmanager.task{
-				fmt.Println(val,tasks)
+			tasks := LoadTasks()
+			for _,t := range  tasks{
+				fmt.Printf("[%d] -> %s -isDone %v\n",t.Id, t.Name ,t.Done)
 			}
 			
 		case 4:
 			return
 			
 		default : 
-		fmt.Println("Select valid choice.")
+		fmt.Println("Invalid choice.")
 		
 		}
 		
