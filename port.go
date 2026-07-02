@@ -6,14 +6,14 @@ import (
 	"sync"
 
 	// "os"
-	// "sync"
 	"strconv"
 	"time"
 )
 
 // add ip support also later
 
-func ScanPort(port int) bool {
+func ScanPort(port int, wg *sync.WaitGroup) bool {
+	defer wg.Done()
 	address := "192.168.1.1:"+strconv.Itoa(port)
 	conn,err := net.DialTimeout("tcp", address,1*time.Second)
 	if err==nil {
@@ -25,24 +25,14 @@ func ScanPort(port int) bool {
 }
 
 
-func scanner()  {
+func main()  {
 	var wg sync.WaitGroup
-	for i := range(1000) {
+	start := time.Now()
+	for i := range(10000) {
 		wg.Add(1)
-		var isOpen bool
-		go func() {
-			defer wg.Done()
-			isOpen = ScanPort(i)
 
-			if isOpen {
-				fmt.Println("The port ",i," is Open------------.")
-			} else {
-				// fmt.Println("The port ",i," is Close.")	
-			}
-		}()
+		go ScanPort(i,&wg)
 	}
 	wg.Wait()
-}
-func main() {
-	scanner()
+	fmt.Print("The time taken is :" ,time.Since(start).Seconds())
 }
