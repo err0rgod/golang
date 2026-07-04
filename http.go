@@ -1,9 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,8 +20,8 @@ func portscanner(c *gin.Context) {
 		return
 	}
 	ip := req.IP
-	start := req.start
-	end := req.end
+	start := req.START
+	end := req.END
 	// error handling
 	if ip == "" || start == "" || end == "" {
 		c.JSON(400,gin.H{"Error":"Required ip, start , end"})
@@ -33,21 +30,33 @@ func portscanner(c *gin.Context) {
 	
 	OpenPorts := main1(ip, start, end)
 	if OpenPorts == nil {
-		c.JSON(400,gin.H{"Error":"Invalid Range."})
+		// c.JSON(400,gin.H{"Error":"Invalid Range."})
 		
-		return
+		// return
 	}
 	resulsts := ScanResult{
 		IP : ip,
 		Ports: OpenPorts,
 	}
+	record := ScanRecord {
+		IP : ip,
+		START: start,
+		END:  end,
+		OPEN_PORTS: OpenPorts,
+	}
+	AddRecord(record)
 	c.JSON(200,resulsts)
 }
 
 type ScanRequest struct {
 	IP string `json:"ip"`
-	start string `json:"start"`
-	end string		`json:"end"`
+	START string `json:"start"`
+	END string		`json:"end"`
+}
+
+func History(c *gin.Context) {
+	records := GetRecord()
+	c.JSON(200,records)
 }
 
 func main(){
@@ -55,6 +64,7 @@ func main(){
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status":"OK"})
 	})
+	r.GET("/history",History)
 	r.POST("/scan", portscanner)
 	r.Run(":8080")
 }
