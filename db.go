@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -21,21 +22,20 @@ func ConnectDB() {
 }
 
 type ScanRecord struct {
-	gorm.Model
-	IP string
+	ID uint    `json:"id" gorm:"primaryKey"`
+	IP string   
 	START string
 	END string
-	OPEN_PORTS []int `gorm:"serializer:json"`
+	OPEN_PORTS []int `json:"open_ports" gorm:"serializer:json"`
+	CREATED_AT time.Time
 }
 
 func AddRecord(record ScanRecord) {
-	ConnectDB()
 	DB.Create(&record)
 }
 
-func GetRecord() *gorm.DB {
-	ConnectDB()
+func GetRecord() ([]ScanRecord , error) {
 	var records []ScanRecord
 	result := DB.Find(&records)
-	return result
+	return records, result.Error
 }

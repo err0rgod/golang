@@ -55,11 +55,15 @@ type ScanRequest struct {
 }
 
 func History(c *gin.Context) {
-	records := GetRecord()
+	records,err := GetRecord()
+	if err!= nil {
+		panic("Data not fetched.")
+	}
 	c.JSON(200,records)
 }
 
 func main(){
+	ConnectDB()
 	r := gin.Default()
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status":"OK"})
