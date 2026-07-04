@@ -4,38 +4,57 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"github.com/gin-gonic/gin"
 )
 
-
-func health(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type","application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status":"OK"})
-	fmt.Fprintln(w, "good boy")
-}
 
 type ScanResult struct {
 	IP string `json:"ip"`
 	Ports []int		`json:"ports"`
 }
 
-func portscanner(w http.ResponseWriter, r *http.Request) {
-	ip := r.URL.Query().Get("ip")
-	start := r.URL.Query().Get("start")
-	end := r.URL.Query().Get("end")
-
+func portscanner(c *gin.Context) {
+	// ip := c.Query("ip")
+	// start := c.Query("start")
+	// end := c.Query("end")
+	var req ScanRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(400,gin.H{"Error":"Invalid request Body"})
+		return
+	}
+	ip := req.IP
+	start := req.start
+	end := req.end
 	// error handling
-
+	if ip == "" || start == "" || end == "" {
+		c.JSON(400,gin.H{"Error":"Required ip, start , end"})
+		return
+	}
+	
 	OpenPorts := main1(ip, start, end)
+	if OpenPorts == nil {
+		c.JSON(400,gin.H{"Error":"Invalid Range."})
+		
+		return
+	}
 	resulsts := ScanResult{
 		IP : ip,
 		Ports: OpenPorts,
 	}
-	w.Header().Set("Content-Type","application/json")
-	json.NewEncoder(w).Encode(resulsts)
+	c.JSON(200,resulsts)
+}
+
+type ScanRequest struct {
+	IP string `json:"ip"`
+	start string `json:"start"`
+	end string		`json:"end"`
 }
 
 func main(){
-	http.HandleFunc("/health",health)
-	http.HandleFunc("/scan",portscanner)
-	http.ListenAndServe(":8080",nil)
+	r := gin.Default()
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status":"OK"})
+	})
+	r.POST("/scan", portscanner)
+	r.Run(":8080")
 }
