@@ -3,11 +3,11 @@ package main
 import "fmt"
 
 func main() {
-	messageChan := make(chan string)
+	msgChan := make(chan string, 100)
 
-	messageChan <- "ping"
+	msgChan <- "hello, how are you"
+	msgChan <- "i am fine"
 
-	msg := <-messageChan
-
-	fmt.Print(msg)
+	fmt.Println(<-msgChan)
+	fmt.Println(<-msgChan)
 }
