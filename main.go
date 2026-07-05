@@ -13,15 +13,33 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-var broadcast = make(chan []byte)	
+type Message struct {
+	Type int
+	Data []byte
+}
 
-var Clients = make(map[*websocket.Conn]bool)
 
+var register = make(chan *websocket.Conn)
+var unregister = make(chan *websocket.Conn)
+var broadcast = make(chan Message)
+
+// only writes the messages 
 func hub() {
+	Clients := make(map[*websocket.Conn]bool)
 	for {
-		message := <- broadcast
-		for client := range Clients {
-			client.WriteMessage(websocket.TextMessage, message)
+		select {
+		case conn := <- register:
+			Clients[conn]=true
+		
+		case conn := <- unregister:
+			delete(Clients,conn)
+			conn.Close()
+
+		case message := <- broadcast:
+			for client := range Clients {
+				client.WriteMessage(message.Type,message.Data)
+				// if err != nil  {return}
+			}
 		}
 	}
 }
@@ -32,19 +50,21 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// adding clients
-	Clients[conn] = true
+	register <- conn
 	defer func(){
-		delete(Clients, conn)
-		conn.Close()
+		unregister <- conn
 	}()
 
 	// just reading messages 
 	for {
-		_, message, err := conn.ReadMessage()
+		msgType, message, err := conn.ReadMessage()
 		if err != nil{
 			return 
 		}
-		broadcast<- message
+		broadcast<- Message{
+			Type : msgType,
+			Data : message ,	
+		}
 	}
 
 	
