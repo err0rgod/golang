@@ -2,77 +2,95 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-
-	"github.com/gorilla/websocket"
+	"log"
+	"os"
+	"github.com/fsnotify/fsnotify"
 )
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
-
-type Message struct {
-	Type int
-	Data []byte
-}
-
-
-var register = make(chan *websocket.Conn)
-var unregister = make(chan *websocket.Conn)
-var broadcast = make(chan Message)
-
-// only writes the messages 
-func hub() {
-	Clients := make(map[*websocket.Conn]bool)
-	for {
-		select {
-		case conn := <- register:
-			Clients[conn]=true
-		
-		case conn := <- unregister:
-			delete(Clients,conn)
-			conn.Close()
-
-		case message := <- broadcast:
-			for client := range Clients {
-				client.WriteMessage(message.Type,message.Data)
-				// if err != nil  {return}
+func main() {
+	// loadfile name and initial size to 0
+	filename := "data.txt"
+	rec_file := "receive.txt"
+	var last_offset int64 = 0
+	// loading initial fine info
+	fileinfo, err := os.Stat(filename)
+	if os.IsNotExist(err){
+		file,err := os.Create(filename)
+		if err != nil {
+			log.Fatal("Error while creating the file.")
+		}
+		file.Close()
+	} else if err != nil {
+		log.Fatal(err)
+	}
+	// setting the size to the actual size of the file
+	last_offset = fileinfo.Size()
+	// creating a fsnotify watcher continously watches the changes
+	watcher,err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer watcher.Close()
+	done := make(chan bool)
+	go func(){
+		for {
+			select {
+				// if a change is maded
+			case event,ok := <- watcher.Events:
+				if !ok {
+					return
+				}
+				// a file change has been made
+				if event.Op & fsnotify.Write == fsnotify.Write {
+					fileInfo,err := os.Stat(filename)
+					if err != nil {
+						log.Printf("Error %v", err)
+						continue	
+					}
+					if fileInfo.Size() < last_offset {
+						last_offset = 0
+					}
+					// if the size changes fom the previous ones
+					if fileInfo.Size() > last_offset {
+						file,err := os.Open(filename)
+						if err != nil {
+							log.Printf("Error %v", err)
+							continue
+						}
+						// setting the delimiter to the position from where it needs to read
+						_,err = file.Seek(last_offset,0)  
+						if err != nil {
+							log.Printf("Error %v", err)
+							file.Close()
+							continue
+						}
+						// making a new slice to hold the new changes and then print them in string
+						new_data := make([]byte, fileInfo.Size() - last_offset)
+						n,err := file.Read(new_data)
+						if err != nil {
+							log.Printf("Error %v", err)
+							file.Close()
+							continue
+						}
+						last_offset += int64(n)
+						os.WriteFile(rec_file, new_data , 0644)
+						fmt.Print(string(new_data))
+						file.Close()
+					}
+				}
+			// if some error occured
+			case err,ok := <- watcher.Errors:
+				if !ok {return }
+				log.Printf("ERROR %v", err)
 			}
 		}
-	}
-}
-
-func wsHandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		return
-	}
-	// adding clients
-	register <- conn
-	defer func(){
-		unregister <- conn
 	}()
-
-	// just reading messages 
-	for {
-		msgType, message, err := conn.ReadMessage()
-		if err != nil{
-			return 
-		}
-		broadcast<- Message{
-			Type : msgType,
-			Data : message ,	
-		}
-	}
-
 	
-}
-
-func main() {
-	go hub()
-	http.HandleFunc("/ws", wsHandler)
-	fmt.Println("Server chal raha hai :8080")
-	http.ListenAndServe(":8080", nil)
+	err = watcher.Add(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println()
+	<-done
+	
 }
