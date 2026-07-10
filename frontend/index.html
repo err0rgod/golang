@@ -2,14 +2,26 @@
 <html>
 <body>
 
-<pre id="doc">Loading...</pre>
+<pre id="doc">Connecting...</pre>
 
 <script>
-fetch("/document")
-.then(r => r.text())
-.then(text => {
-    document.getElementById("doc").textContent = text;
-});
+const ws = new WebSocket("ws://localhost:8080/ws");
+
+ws.onopen = () => {
+    console.log("Connected");
+};
+
+ws.onmessage = (event) => {
+    document.getElementById("doc").textContent = event.data;
+};
+
+ws.onclose = () => {
+    console.log("Disconnected");
+};
+
+ws.onerror = (err) => {
+    console.log(err);
+};
 </script>
 
 </body>

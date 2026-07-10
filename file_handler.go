@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+
 	"github.com/fsnotify/fsnotify"
+	"github.com/gorilla/websocket"
 )
 
 func Update() {
@@ -73,6 +75,10 @@ func Update() {
 							continue
 						}
 						last_offset += int64(n)
+						broadcast <- Data {
+							Type : websocket.TextMessage,
+							Data :new_data,
+						}
 						fmt.Print(string(new_data))
 						file.Close()
 					}
