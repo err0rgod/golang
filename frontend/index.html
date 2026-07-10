@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<pre id="doc">Loading...</pre>
+
+<script>
+fetch("/document")
+.then(r => r.text())
+.then(text => {
+    document.getElementById("doc").textContent = text;
+});
+</script>
+
+</body>
+</html>
