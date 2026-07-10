@@ -27,6 +27,9 @@ func Update() {
 		// setting the size to the actual size of the file
 	fileinfo, err = os.Stat(Filename)
 	last_offset = fileinfo.Size()
+
+
+
 	// creating a fsnotify watcher continously watches the changes
 	watcher,err := fsnotify.NewWatcher()
 	if err != nil {
@@ -49,11 +52,10 @@ func Update() {
 						log.Printf("Error %v", err)
 						continue	
 					}
+					// if the size changes fom the previous ones
 					if fileInfo.Size() < last_offset {
 						last_offset = 0
-					}
-					// if the size changes fom the previous ones
-					if fileInfo.Size() > last_offset {
+					}else if fileInfo.Size() > last_offset {
 						file,err := os.Open(Filename)
 						if err != nil {
 							log.Printf("Error %v", err)
@@ -79,7 +81,7 @@ func Update() {
 							Type : websocket.TextMessage,
 							Data :new_data,
 						}
-						fmt.Print(string(new_data))
+						// fmt.Print(string(new_data))
 						file.Close()
 					}
 				}

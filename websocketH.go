@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"fmt"
+	"os"
 
 	"github.com/gorilla/websocket"
 )
@@ -52,6 +53,12 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	defer func(){
 		Unregister <- conn
 	}()
+
+	// to load old data
+	data, err := os.ReadFile("data.txt")
+	if err == nil {
+    	conn.WriteMessage(websocket.TextMessage, data)
+	}
 
 	// just reading messages 
 	for {
